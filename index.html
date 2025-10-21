@@ -355,17 +355,30 @@
         let currentDay = 'day1';
         let selectedPlaceId = null;
 
+        // SDK 로드 대기
+        function bootKakao(callback) {
+          const start = Date.now();
+          const timer = setInterval(() => {
+            if (window.kakao && window.kakao.maps && typeof window.kakao.maps.load === 'function') {
+              clearInterval(timer);
+              callback();
+            } else if (Date.now() - start > 8000) {
+              clearInterval(timer);
+              alert('카카오 지도 SDK 로드 실패: 도메인 등록/JavaScript 키를 확인하세요.');
+              console.error('Kakao SDK not loaded');
+            }
+          }, 50);
+        }
+
         // 지도 초기화
         function initMap() {
-            kakao.maps.load(function() {
-                const mapContainer = document.getElementById('map');
-                const mapOption = {
-                    center: new kakao.maps.LatLng(36.8012, 127.1065),
-                    level: 4
-                };
-                map = new kakao.maps.Map(mapContainer, mapOption);
-                updateMap();
-            });
+          const mapContainer = document.getElementById('map');
+          const mapOption = {
+            center: new kakao.maps.LatLng(36.8012, 127.1065),
+            level: 4
+          };
+          map = new kakao.maps.Map(mapContainer, mapOption);
+          updateMap();
         }
 
         // 지도 업데이트
@@ -510,11 +523,17 @@
         });
 
         // 초기 실행
-        window.addEventListener('load', () => {
-            initMap();
-            updatePlaceList();
-            updateTodoList();
+        window.addEventListener('DOMContentLoaded', () => {
+          bootKakao(() => {
+            // autoload=false 를 썼으므로 로드 콜백에서 지도 초기화
+            kakao.maps.load(() => {
+              initMap();
+              updatePlaceList();
+              updateTodoList();
+            });
+          });
         });
+
     </script>
 </body>
 </html>
