@@ -277,9 +277,9 @@
 
               <!-- 도보 길찾기 -->
               ${isFirst ? `
-                <button class="btn walk" data-kind="walk-start" data-idx="${i}" ${canStartTo1?'':'disabled'}>도보 길찾기</button>
+                <button class="btn walk" data-kind="walk-start" data-idx="${i}" ${canStartTo1?'':'disabled'}>길찾기</button>
               ` : `
-                <button class="btn walk" data-kind="walk-prev" data-idx="${i}" ${canPrevTo?'':'disabled'}>← 도보 길찾기</button>
+                <button class="btn walk" data-kind="walk-prev" data-idx="${i}" ${canPrevTo?'':'disabled'}>길찾기</button>
               `}
               ${isLast ? `
                 <button class="btn secondary walk" data-kind="walk-end" data-idx="${i}" ${canToEnd?'':'disabled'}>집가는 길</button>
