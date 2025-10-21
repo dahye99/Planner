@@ -34,6 +34,9 @@
     .place-info{flex:1;min-width:0}
     .place-name{font-weight:600;color:#333;margin-bottom:4px;word-break:break-word}
     .place-category{font-size:12px;color:#999}
+    .place-meta{margin-top:4px}
+    .place-addr small{color:#666}
+    .place-time small{color:#555}
     .place-item.active{background:#fff3e0;border-left-color:#ff9800}
     .btn{padding:8px 12px;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
     .btn:hover{transform:scale(1.05)}
@@ -48,7 +51,14 @@
     .sidebar::-webkit-scrollbar-track,.list-section::-webkit-scrollbar-track{background:#f1f1f1;border-radius:10px}
     .sidebar::-webkit-scrollbar-thumb,.list-section::-webkit-scrollbar-thumb{background:#888;border-radius:10px}
     .sidebar::-webkit-scrollbar-thumb:hover,.list-section::-webkit-scrollbar-thumb:hover{background:#555}
-    @media (max-width:1024px){.content{flex-direction:column}.sidebar{width:100%;height:40%}.map-container{height:60%}}
+
+    /* 모바일: 리스트 박스 각각 2.5배(≈50vh)로 키우기 */
+    @media (max-width:1024px){
+      .content{flex-direction:column; overflow:auto;}
+      .sidebar{width:100%; height:auto;}
+      .map-container{height:60vh;}
+      .list-section{min-height:50vh;}
+    }
   </style>
 </head>
 <body>
@@ -75,7 +85,7 @@
 
   <script>
     /* ===== 캐시버스터(모바일 강제 최신화) ===== */
-    const APP_VERSION = '20251021_04';
+    const APP_VERSION = '20251021_05';
     (function enforceVersion(){
       const v = new URLSearchParams(location.search).get('v');
       if (v !== APP_VERSION) location.replace(location.origin + location.pathname + '?v=' + APP_VERSION);
@@ -83,28 +93,29 @@
 
     /* ===== 데이터 =====
        - addr 있으면 지오코딩, 실패하면 이름 검색 보완
-       - url은 "자세한 정보" 버튼에서 새 탭으로 오픈 */
+       - url은 "자세한 정보" 버튼에서 새 탭으로 오픈
+       - time은 주소 아래 줄에 표시 */
     const data = {
       day1: {
         places: [
-          { id:1, name:'명현만간장게장 천안점', category:'음식점', addr:'충남 천안시 서북구 원두정8길 32', url:'https://naver.me/x2cE9jUN' },
-          { id:2, name:'베스킨라빈스 천안먹자골목점', category:'디저트', addr:'충남 천안시 서북구 두정로 168', url:'https://naver.me/GT6zzPIu' },
-          { id:3, name:'정담족발 천안두정점', category:'음식점', addr:'충남 천안시 서북구 두정로 146', url:'https://naver.me/G28LhsBT' },
-          { id:4, name:'스위트원', category:'오락실', addr:'충남 천안시 서북구 두정동 927', url:'https://naver.me/FK05VjaH' },
-          { id:5, name:'댑스PC방 천안두정본점', category:'PC방', addr:'충남 천안시 서북구 두정동 886-1', url:'https://naver.me/xNnLjerb' },
-          { id:6, name:'준코 천안성정점', category:'음식점', addr:'충남 천안시 서북구 성정동 1286', url:'https://naver.me/xhzb2jyd' }
+          { id:1, name:'명현만간장게장 천안점', category:'음식점', addr:'충남 천안시 서북구 원두정8길 32', url:'https://naver.me/x2cE9jUN', time:'11:30 - 23:30' },
+          { id:2, name:'베스킨라빈스 천안먹자골목점', category:'디저트', addr:'충남 천안시 서북구 두정로 168', url:'https://naver.me/GT6zzPIu', time:'10:00 - 23:00' },
+          { id:3, name:'정담족발 천안두정점', category:'음식점', addr:'충남 천안시 서북구 두정로 146', url:'https://naver.me/GzEcsTiy', time:'11:00 - 23:00 (14:00-15:00 브레이크)' },
+          { id:4, name:'스위트원', category:'오락실', addr:'충남 천안시 서북구 두정동 927', url:'https://naver.me/FK05VjaH', time:'24시간' },
+          { id:5, name:'댑스PC방 천안두정본점', category:'PC방', addr:'충남 천안시 서북구 두정동 886-1', url:'https://naver.me/xNnLjerb', time:'24시간' },
+          { id:6, name:'준코 천안성정점', category:'음식점', addr:'충남 천안시 서북구 성정동 1286', url:'https://naver.me/xhzb2jyd', time:'17:00 - 08:00' }
         ],
         todos:['게장에 소맥','베라에서 해장','불족발에 소주','초코에몽 물고 인뽑 ㄱㄱ','피시방에서 정신 차리면서 라면 해장','준코 ㄱㄱ','집가서 기절 ㄱㄱ']
       },
       day2: {
         places: [
-          { id:1, name:'콩심 천안두정점', category:'음식점', addr:'충남 천안시 서북구 1공단1길 52', url:'https://naver.me/GTnhZfhG' },
-          { id:2, name:'로맨틱팔레트카페 두정점', category:'카페', addr:'충남 천안시 서북구 두정로 197', url:'https://naver.me/5IS9hGqo' },
-          { id:3, name:'청춘국물닭발 두정점', category:'음식점', addr:'충남 천안시 서북구 두정동 692', url:'https://naver.me/xf5MWI0i' },
-          { id:4, name:'스위트원', category:'오락실', addr:'충남 천안시 서북구 두정동 927', url:'https://naver.me/FK05VjaH' },
-          { id:5, name:'용용선생 천안 두정점', category:'음식점', addr:'충남 천안시 서북구 두정동 887', url:'https://naver.me/GDafeRVu' },
-          { id:6, name:'스트라이크존 두정구장', category:'레저', addr:'충남 천안시 서북구 두정동 830', url:'https://naver.me/FfewTMo2' },
-          { id:7, name:'삼춘네 옥상집', category:'음식점', addr:'충남 천안시 서북구 두정동 843', url:'https://naver.me/5UTzZLqT' }
+          { id:1, name:'콩심 천안두정점', category:'음식점', addr:'충남 천안시 서북구 1공단1길 52', url:'https://naver.me/GTnhZfhG', time:'05:00 - 21:00' },
+          { id:2, name:'카페담소', category:'카페', addr:'충남 천안시 서북구 두정동 1283', url:'https://naver.me/FN7XQXlD', time:'12:00-22:00' },
+          { id:3, name:'청춘국물닭발 두정점', category:'음식점', addr:'충남 천안시 서북구 두정동 692', url:'https://naver.me/xf5MWI0i', time:'16:00 - 02:00' },
+          { id:4, name:'스위트원', category:'오락실', addr:'충남 천안시 서북구 두정동 927', url:'https://naver.me/FK05VjaH', time:'24시간' },
+          { id:5, name:'용용선생 천안 두정점', category:'음식점', addr:'충남 천안시 서북구 두정동 887', url:'https://naver.me/GDafeRVu', time:'16:00 - 04:00' },
+          { id:6, name:'스트라이크존 두정구장', category:'레저', addr:'충남 천안시 서북구 두정동 830', url:'https://naver.me/FfewTMo2', time:'15:00 - 01:00' },
+          { id:7, name:'삼춘네 옥상집', category:'음식점', addr:'충남 천안시 서북구 두정동 843', url:'https://naver.me/5pwic6Y5', time:'17:00 - 02:00' }
         ],
         todos:['국밥에 해장술','분조카에서 수분 충전','닭발에 소주','오락실 찢어버려','용용선생에 파괴광선 쏘기','스야가서 우리집 개빠따들보다 안타 많이치기','포장마차 비슷한 갬성 술집 ㄱ','집가서 야구 영상 시청하며 맥주']
       }
@@ -247,8 +258,15 @@
     }
 
     /* ===== 사이드바 ===== */
-    function formatAddr(a){ return a ? ` · <small>${a}</small>` : ''; }
     const normalizeUrl = (u) => /^https?:\/\//i.test(u) ? u : ('https://' + u);
+
+    // 주소/영업시간 라인 출력
+    function metaHtml(addr, time){
+      let html = '';
+      if(addr) html += `<div class="place-addr"><small>${addr}</small></div>`;
+      if(time) html += `<div class="place-time"><small>🕒 ${time}</small></div>`;
+      return html;
+    }
 
     async function updatePlaceList(){
       const placeList=document.getElementById('placeList');
@@ -257,9 +275,9 @@
 
       placeList.innerHTML = places.map((p,i)=>{
         const isFirst = i===0, isLast = i===places.length-1;
-        const canPrevTo   = !isFirst && hasCoord(places[i-1]) && hasCoord(p);
-        const canStartTo1 =  isFirst && hasCoord(startCoord) && hasCoord(p);
-        const canToEnd    =  isLast  && hasCoord(p) && hasCoord(endCoord);
+        const canPrevTo   = !isFirst && (p.lat!=null && p.lng!=null) && (places[i-1].lat!=null && places[i-1].lng!=null);
+        const canStartTo1 =  isFirst && startCoord && (p.lat!=null && p.lng!=null);
+        const canToEnd    =  isLast  && endCoord && (p.lat!=null && p.lng!=null);
         const hasUrl      =  !!(p.url && p.url.trim());
 
         return `
@@ -268,14 +286,14 @@
               <div class="place-number">${i+1}</div>
               <div class="place-info">
                 <div class="place-name">${p.name}</div>
-                <div class="place-category">${p.category}${formatAddr(p.address)}${hasCoord(p)?'':` · <small style="color:#e53935">좌표 미확정</small>`}</div>
+                <div class="place-category">${p.category}${(p.lat==null||p.lng==null)?` · <small style="color:#e53935">좌표 미확정</small>`:''}</div>
+                <div class="place-meta">
+                  ${metaHtml(p.address, p.time)}
+                </div>
               </div>
             </div>
-            <div class="direction-row" style="display:flex;gap:8px;flex-wrap:wrap">
-              <!-- 자세한 정보 (해당 장소 url 오픈) -->
+            <div class="direction-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
               <button class="btn info" data-kind="${isFirst?'info-start':'info-prev'}" data-idx="${i}" ${hasUrl?'':'disabled'}>자세한 정보</button>
-
-              <!-- 도보 길찾기 -->
               ${isFirst ? `
                 <button class="btn walk" data-kind="walk-start" data-idx="${i}" ${canStartTo1?'':'disabled'}>길찾기</button>
               ` : `
@@ -322,7 +340,7 @@
           else if(kind==='walk-prev'){ from=arr[idx-1]; to=arr[idx]; }
           else if(kind==='walk-end'){ from=arr[idx]; to={name:'도착지',...endCoord}; }
 
-          if(!hasCoord(from) || !hasCoord(to)) return alert('이 구간은 좌표가 없어 진행할 수 없습니다.');
+          if(!from || !to || from.lat==null || to.lat==null) return alert('이 구간은 좌표가 없어 진행할 수 없습니다.');
           openKakaoWalk(from,to);
         });
       });
