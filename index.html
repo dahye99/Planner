@@ -80,7 +80,7 @@
         places: [
           { id: 1, name: '명현만간장게장 천안점', category: '음식점' },
           { id: 2, name: '베스킨라빈스 천안먹자골목점', category: '디저트' },
-          { id: 3, name: '정담족발', category: '음식점' },
+          { id: 3, name: '정담족발 천안두정점', category: '음식점' },
           { id: 4, name: '스위트원', category: '오락실' },
           { id: 5, name: '댑스PC방 천안두정본점', category: 'PC방' },
           { id: 6, name: '준코 천안성정점', category: '음식점' }
@@ -145,20 +145,50 @@
       });
     }
 
-    function searchPlaceByName(name, near) {
-      return new Promise((resolve) => {
-        const opt = near ? { location: toLatLng(near), radius: 5000 } : undefined;
-        placesService.keywordSearch(name, (res, status) => {
-          if (status === kakao.maps.services.Status.OK && res[0]) {
-            const p = res[0];
-            resolve({ lat: parseFloat(p.y), lng: parseFloat(p.x), address: p.road_address_name || p.address_name || '', kakaoName: p.place_name });
-          } else {
-            // 못 찾으면 null
-            resolve(null);
-          }
+    // 더 견고한 장소명 검색: 다중 시도 + 지역 힌트 + 사각형 제한
+    async function searchPlaceByName(name, near) {
+      const tryKeyword = (q, opt) => new Promise((resolve) => {
+        placesService.keywordSearch(q, (res, status) => {
+          if (status === kakao.maps.services.Status.OK && res.length) resolve(res[0]);
+          else resolve(null);
         }, opt);
       });
+    
+      // 기준점이 있으면 반경/사각형 옵션 구성
+      const RADIUS_M = 7000; // 7km
+      const baseOpt = near ? { location: toLatLng(near), radius: RADIUS_M } : {};
+      const rectOpt = (() => {
+        if (!near) return {};
+        // 대략 0.03도 ≒ 3km 근처 (위경도 대략치) — 사각형 제한
+        const dx = 0.03, dy = 0.03;
+        const rect = `${near.lng - dx},${near.lat - dy},${near.lng + dx},${near.lat + dy}`;
+        return { rect };
+      })();
+    
+      // 1) 원문 검색
+      let hit = await tryKeyword(name, baseOpt);
+      // 2) 지역 힌트(천안) 추가
+      if (!hit) hit = await tryKeyword(`${name} 천안`, baseOpt);
+      // 3) 사각형(rect)로 강제 지역 제한
+      if (!hit && near) hit = await tryKeyword(name, rectOpt);
+      // 4) 동네 힌트(두정) 추가
+      if (!hit) hit = await tryKeyword(`${name} 두정`, baseOpt);
+    
+      if (hit) {
+        const p = hit;
+        return {
+          lat: parseFloat(p.y),
+          lng: parseFloat(p.x),
+          address: p.road_address_name || p.address_name || '',
+          kakaoName: p.place_name
+        };
+      }
+    
+      // 디버그 로그(개발용)
+      console.warn('[keyword ZERO_RESULT]', name);
+      return null;
     }
+
 
     async function resolveDayPlaces(day) {
       if (resolved[day]) return resolved[day]; // 캐시
