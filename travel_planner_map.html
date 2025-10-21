@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>여행 일정 플래너</title>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=cb8fd7f6719645e95bc007ae344e404e&libraries=services"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        /* 상단 Day 버튼 */
+        .day-selector {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            justify-content: center;
+        }
+
+        .day-btn {
+            padding: 12px 30px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            background-color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .day-btn.active {
+            background-color: #2196F3;
+            color: white;
+            border-color: #2196F3;
+        }
+
+        .day-btn:hover {
+            border-color: #2196F3;
+        }
+
+        /* 메인 콘텐츠 영역 */
+        .content {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* 지도 영역 */
+        .map-container {
+            flex: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-marker-label {
+            background-color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 2px solid #2196F3;
+            font-weight: bold;
+            font-size: 14px;
+            color: #2196F3;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s;
+        }
+
+        .map-marker-label:hover {
+            background-color: #2196F3;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* 사이드바 */
+        .sidebar {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        /* List Section */
+        .list-section {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .list-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .place-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid #e0e0e0;
+        }
+
+        .place-item:hover {
+            background-color: #e3f2fd;
+            border-left-color: #2196F3;
+            transform: translateX(5px);
+        }
+
+        .place-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .place-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background-color: #2196F3;
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .place-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .place-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+
+        .place-category {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .place-item.active {
+            background-color: #fff3e0;
+            border-left-color: #ff9800;
+        }
+
+        .direction-btn {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .direction-btn:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        .direction-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* To-do List */
+        .todo-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            word-break: break-word;
+        }
+
+        .todo-number {
+            font-weight: bold;
+            color: #4CAF50;
+            flex-shrink: 0;
+            min-width: 20px;
+        }
+
+        .todo-text {
+            color: #333;
+            font-size: 14px;
+        }
+
+        /* 스크롤바 */
+        .sidebar::-webkit-scrollbar,
+        .list-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track,
+        .list-section::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb,
+        .list-section::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover,
+        .list-section::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: 40%;
+            }
+
+            .map-container {
+                height: 60%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Day 선택 -->
+        <div class="day-selector">
+            <button class="day-btn active" data-day="day1">Day 1</button>
+            <button class="day-btn" data-day="day2">Day 2</button>
+        </div>
+
+        <!-- 메인 콘텐츠 -->
+        <div class="content">
+            <!-- 지도 -->
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+
+            <!-- 사이드바 -->
+            <div class="sidebar">
+                <!-- Place List -->
+                <div class="list-section">
+                    <h2>🗒️ Place List</h2>
+                    <div id="placeList"></div>
+                </div>
+
+                <!-- To-do List -->
+                <div class="list-section">
+                    <h2>🗒️ To-do List</h2>
+                    <div id="todoList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 데이터
+        const data = {
+            day1: {
+                places: [
+                    { id: 1, name: '명현만간장게장 천안점', category: '음식점', lat: 36.8030, lng: 127.1144 },
+                    { id: 2, name: '베스킨라빈스 천안먹자골목점', category: '디저트', lat: 36.8020, lng: 127.1134 },
+                    { id: 3, name: '정담족발', category: '음식점', lat: 36.8010, lng: 127.1124 },
+                    { id: 4, name: '스위트원 (인형뽑기)', category: '오락실', lat: 36.8000, lng: 127.1114 },
+                    { id: 5, name: '댑스PC방 천안두정본점', category: 'PC방', lat: 36.7990, lng: 127.1104 },
+                    { id: 6, name: '준코 천안성정점', category: '음식점', lat: 36.7980, lng: 127.1094 }
+                ],
+                todos: [
+                    '게장에 소맥',
+                    '베라에서 해장',
+                    '불족발에 소주',
+                    '초코에몽 물고 인뽑 ㄱㄱ',
+                    '피시방에서 정신 차리면서 라면 해장',
+                    '준코 ㄱㄱ',
+                    '집가서 기절 ㄱㄱ'
+                ]
+            },
+            day2: {
+                places: [
+                    { id: 1, name: '콩심 천안두정점', category: '음식점', lat: 36.8015, lng: 127.1105 },
+                    { id: 2, name: '로맨틱팔레트카페 두정점', category: '카페', lat: 36.8005, lng: 127.1095 },
+                    { id: 3, name: '청춘국물닭발 두정점', category: '음식점', lat: 36.7995, lng: 127.1085 },
+                    { id: 4, name: '스위트원 (인형뽑기)', category: '오락실', lat: 36.7985, lng: 127.1075 },
+                    { id: 5, name: '용용선생 천안 두정점', category: '음식점', lat: 36.7975, lng: 127.1065 },
+                    { id: 6, name: '스트라이크존 두정구장', category: '레저', lat: 36.7965, lng: 127.1055 },
+                    { id: 7, name: '삼춘네 옥상집', category: '음식점', lat: 36.7955, lng: 127.1045 }
+                ],
+                todos: [
+                    '국밥에 해장술',
+                    '분조카에서 수분 충전',
+                    '닭발에 소주',
+                    '오락실 찢어버려',
+                    '용용선생에 파괴광선 쏘기',
+                    '스야가서 우리집 개빠따들보다 안타 많이치기',
+                    '포장마차 비슷한 갬성 술집 ㄱ',
+                    '집가서 야구 영상 시청하며 맥주'
+                ]
+            }
+        };
+
+        let map;
+        let markers = [];
+        let polyline = null;
+        let currentDay = 'day1';
+        let selectedPlaceId = null;
+
+        // 지도 초기화
+        function initMap() {
+            const mapContainer = document.getElementById('map');
+            const mapOption = {
+                center: new kakao.maps.LatLng(36.8000, 127.1100),
+                level: 4
+            };
+            map = new kakao.maps.Map(mapContainer, mapOption);
+            updateMap();
+        }
+
+        // 지도 업데이트
+        function updateMap() {
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+            if (polyline) polyline.setMap(null);
+
+            const places = data[currentDay].places;
+            places.forEach((place, index) => {
+                const position = new kakao.maps.LatLng(place.lat, place.lng);
+                const content = document.createElement('div');
+                content.className = 'map-marker-label';
+                content.textContent = index + 1;
+                content.addEventListener('click', () => highlightPlace(place.id));
+
+                const customOverlay = new kakao.maps.CustomOverlay({
+                    position: position,
+                    content: content,
+                    yAnchor: 1
+                });
+                customOverlay.setMap(map);
+                markers.push(customOverlay);
+            });
+        }
+
+        // Place List 업데이트
+        function updatePlaceList() {
+            const placeList = document.getElementById('placeList');
+            const places = data[currentDay].places;
+
+            placeList.innerHTML = places.map((place, index) => `
+                <div class="place-item" data-place-id="${place.id}">
+                    <div class="place-header">
+                        <div class="place-number">${index + 1}</div>
+                        <div class="place-info">
+                            <div class="place-name">${place.name}</div>
+                            <div class="place-category">${place.category}</div>
+                        </div>
+                    </div>
+                    <button class="direction-btn" data-from="${index > 0 ? index : 'start'}" data-to="${index}">
+                        ${index > 0 ? '← 길찾기' : '출발지'}
+                    </button>
+                </div>
+            `).join('');
+
+            placeList.querySelectorAll('.place-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('direction-btn')) return;
+                    highlightPlace(parseInt(item.dataset.placeId));
+                });
+            });
+
+            placeList.querySelectorAll('.direction-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const fromIdx = btn.dataset.from;
+                    const toIdx = parseInt(btn.dataset.to);
+
+                    if (fromIdx === 'start') {
+                        alert('출발지입니다');
+                        return;
+                    }
+
+                    const places = data[currentDay].places;
+                    const fromPlace = places[parseInt(fromIdx) - 1];
+                    const toPlace = places[toIdx];
+
+                    showDirection(fromPlace, toPlace);
+                });
+            });
+        }
+
+        // To-do List 업데이트
+        function updateTodoList() {
+            const todoList = document.getElementById('todoList');
+            const todos = data[currentDay].todos;
+
+            todoList.innerHTML = todos.map((todo, index) => `
+                <div class="todo-item">
+                    <div class="todo-number">${index + 1}.</div>
+                    <div class="todo-text">${todo}</div>
+                </div>
+            `).join('');
+        }
+
+        // Place 하이라이트
+        function highlightPlace(placeId) {
+            selectedPlaceId = placeId;
+            document.querySelectorAll('.place-item').forEach(item => {
+                item.classList.remove('active');
+                if (parseInt(item.dataset.placeId) === placeId) {
+                    item.classList.add('active');
+                }
+            });
+
+            const place = data[currentDay].places.find(p => p.id === placeId);
+            if (place) {
+                map.setCenter(new kakao.maps.LatLng(place.lat, place.lng));
+            }
+        }
+
+        // 길찾기 표시
+        function showDirection(fromPlace, toPlace) {
+            if (polyline) polyline.setMap(null);
+
+            const linePath = [
+                new kakao.maps.LatLng(fromPlace.lat, fromPlace.lng),
+                new kakao.maps.LatLng(toPlace.lat, toPlace.lng)
+            ];
+
+            polyline = new kakao.maps.Polyline({
+                path: linePath,
+                strokeWeight: 3,
+                strokeColor: '#2196F3',
+                strokeOpacity: 0.7,
+                strokeStyle: 'dash'
+            });
+            polyline.setMap(map);
+
+            // 거리 계산
+            const distance = kakao.maps.util.getDistance(
+                linePath[0],
+                linePath[1]
+            );
+
+            alert(`${fromPlace.name} → ${toPlace.name}\n거리: ${(distance / 1000).toFixed(2)}km`);
+        }
+
+        // Day 버튼 클릭
+        document.querySelectorAll('.day-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentDay = btn.dataset.day;
+                selectedPlaceId = null;
+
+                updateMap();
+                updatePlaceList();
+                updateTodoList();
+            });
+        });
+
+        // 초기 실행
+        window.addEventListener('load', () => {
+            initMap();
+            updatePlaceList();
+            updateTodoList();
+        });
+    </script>
+</body>
+</html>
