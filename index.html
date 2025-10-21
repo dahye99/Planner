@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>술을 먹자 냠냐미</title>
 
-  <!-- 캐시 무효화(모바일에서 최신 반영 보장) -->
+  <!-- 캐시 무효화(모바일 최신 반영 보장) -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -37,7 +37,7 @@
     .place-item.active{background:#fff3e0;border-left-color:#ff9800}
     .btn{padding:8px 12px;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
     .btn:hover{transform:scale(1.05)}
-    .btn.preview{background:#4CAF50}.btn.preview:hover{background:#45a049}
+    .btn.info{background:#4CAF50}.btn.info:hover{background:#45a049}
     .btn.walk{background:#1976d2}.btn.walk:hover{background:#1565c0}
     .btn.secondary{background:#9c27b0}.btn.secondary:hover{background:#7b1fa2}
     .btn:disabled{background:#ccc;cursor:not-allowed;transform:none}
@@ -75,38 +75,38 @@
 
   <script>
     /* ===== 캐시버스터(모바일 강제 최신화) ===== */
-    const APP_VERSION = '20251021_03';
+    const APP_VERSION = '20251021_04';
     (function enforceVersion(){
       const v = new URLSearchParams(location.search).get('v');
       if (v !== APP_VERSION) location.replace(location.origin + location.pathname + '?v=' + APP_VERSION);
     })();
 
     /* ===== 데이터 =====
-       - addr 를 채우면 "주소 지오코딩"으로 먼저 좌표를 얻고,
-         없거나 실패하면 이름 검색으로 보완한다. */
+       - addr 있으면 지오코딩, 실패하면 이름 검색 보완
+       - url은 "자세한 정보" 버튼에서 새 탭으로 오픈 */
     const data = {
       day1: {
         places: [
-          { id:1, name:'명현만간장게장 천안점', category:'음식점', addr:'충남 천안시 서북구 원두정8길 32' },
-          { id:2, name:'베스킨라빈스 천안먹자골목점', category:'디저트', addr:'충남 천안시 서북구 두정로 168' },
-          { id:3, name:'정담족발 천안두정점', category:'음식점', addr:'충남 천안시 서북구 두정로 146' },
-          { id:4, name:'스위트원', category:'오락실', addr:'충남 천안시 서북구 두정동 927' },
-          { id:5, name:'댑스PC방 천안두정본점', category:'PC방', addr:'충남 천안시 서북구 두정동 886-1' },
-          { id:6, name:'준코 천안성정점', category:'음식점', addr:'충남 천안시 서북구 성정동 1286' }
+          { id:1, name:'명현만간장게장 천안점', category:'음식점', addr:'충남 천안시 서북구 원두정8길 32', url:'https://naver.me/x2cE9jUN' },
+          { id:2, name:'베스킨라빈스 천안먹자골목점', category:'디저트', addr:'충남 천안시 서북구 두정로 168', url:'https://naver.me/GT6zzPIu' },
+          { id:3, name:'정담족발 천안두정점', category:'음식점', addr:'충남 천안시 서북구 두정로 146', url:'https://naver.me/G28LhsBT' },
+          { id:4, name:'스위트원', category:'오락실', addr:'충남 천안시 서북구 두정동 927', url:'https://naver.me/FK05VjaH' },
+          { id:5, name:'댑스PC방 천안두정본점', category:'PC방', addr:'충남 천안시 서북구 두정동 886-1', url:'https://naver.me/xNnLjerb' },
+          { id:6, name:'준코 천안성정점', category:'음식점', addr:'충남 천안시 서북구 성정동 1286', url:'https://naver.me/xhzb2jyd' }
         ],
-        todos: ['게장에 소맥','베라에서 해장','불족발에 소주','초코에몽 물고 인뽑 ㄱㄱ','피시방에서 정신 차리면서 라면 해장','준코 ㄱㄱ','집가서 기절 ㄱㄱ']
+        todos:['게장에 소맥','베라에서 해장','불족발에 소주','초코에몽 물고 인뽑 ㄱㄱ','피시방에서 정신 차리면서 라면 해장','준코 ㄱㄱ','집가서 기절 ㄱㄱ']
       },
       day2: {
         places: [
-          { id:1, name:'콩심 천안두정점', category:'음식점', addr:'충남 천안시 서북구 1공단1길 52' },
-          { id:2, name:'로맨틱팔레트카페 두정점', category:'카페', addr:'충남 천안시 서북구 두정로 197' },
-          { id:3, name:'청춘국물닭발 두정점', category:'음식점', addr:'충남 천안시 서북구 두정동 692' },
-          { id:4, name:'스위트원', category:'오락실', addr:'충남 천안시 서북구 두정동 927' },
-          { id:5, name:'용용선생 천안 두정점', category:'음식점', addr:'충남 천안시 서북구 두정동 887' },
-          { id:6, name:'스트라이크존 두정구장', category:'레저', addr:'충남 천안시 서북구 두정동 830' },
-          { id:7, name:'삼춘네 옥상집', category:'음식점', addr:'충남 천안시 서북구 두정동 843' }
+          { id:1, name:'콩심 천안두정점', category:'음식점', addr:'충남 천안시 서북구 1공단1길 52', url:'https://naver.me/GTnhZfhG' },
+          { id:2, name:'로맨틱팔레트카페 두정점', category:'카페', addr:'충남 천안시 서북구 두정로 197', url:'https://naver.me/5IS9hGqo' },
+          { id:3, name:'청춘국물닭발 두정점', category:'음식점', addr:'충남 천안시 서북구 두정동 692', url:'https://naver.me/xf5MWI0i' },
+          { id:4, name:'스위트원', category:'오락실', addr:'충남 천안시 서북구 두정동 927', url:'https://naver.me/FK05VjaH' },
+          { id:5, name:'용용선생 천안 두정점', category:'음식점', addr:'충남 천안시 서북구 두정동 887', url:'https://naver.me/GDafeRVu' },
+          { id:6, name:'스트라이크존 두정구장', category:'레저', addr:'충남 천안시 서북구 두정동 830', url:'https://naver.me/FfewTMo2' },
+          { id:7, name:'삼춘네 옥상집', category:'음식점', addr:'충남 천안시 서북구 두정동 843', url:'https://naver.me/5UTzZLqT' }
         ],
-        todos: ['국밥에 해장술','분조카에서 수분 충전','닭발에 소주','오락실 찢어버려','용용선생에 파괴광선 쏘기','스야가서 우리집 개빠따들보다 안타 많이치기','포장마차 비슷한 갬성 술집 ㄱ','집가서 야구 영상 시청하며 맥주']
+        todos:['국밥에 해장술','분조카에서 수분 충전','닭발에 소주','오락실 찢어버려','용용선생에 파괴광선 쏘기','스야가서 우리집 개빠따들보다 안타 많이치기','포장마차 비슷한 갬성 술집 ㄱ','집가서 야구 영상 시청하며 맥주']
       }
     };
 
@@ -115,14 +115,14 @@
 
     /* ===== 상태 ===== */
     let map, markers=[], polyline=null;
-    let startCoord=null, endCoord=null;      // {lat, lng}
+    let startCoord=null, endCoord=null;
     let currentDay='day1', selectedPlaceId=null;
-    const resolved = {};                     // day별 좌표 캐시
+    const resolved = {};
 
     /* ===== Kakao SDK 동적 로드 ===== */
     async function bootKakao(cb){
       if (window.kakao?.maps?.load) return cb();
-      const JS_KEY='b4355dd1e5b1ee165fcf0fa8371258c0'; // JavaScript 키
+      const JS_KEY='b4355dd1e5b1ee165fcf0fa8371258c0';
       await new Promise((resolve,reject)=>{
         const s=document.createElement('script');
         s.src=`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${JS_KEY}&libraries=services&autoload=false&ver=${APP_VERSION}`;
@@ -186,14 +186,12 @@
 
       const results = await Promise.all(
         data[day].places.map(async pl=>{
-          // 1) 주소 우선
           if (pl.addr && pl.addr.trim()){
             try{
               const c = await geocodeAddress(pl.addr.trim());
               return { ...pl, lat:c.lat, lng:c.lng, address:pl.addr };
-            }catch{ /* 주소 실패시 이름 검색으로 보완 */ }
+            }catch{}
           }
-          // 2) 이름 검색
           const hit = await searchPlaceByName(pl.name, base);
           return { ...pl, lat:hit?.lat ?? null, lng:hit?.lng ?? null, address:pl.addr || hit?.address || '' };
         })
@@ -250,6 +248,7 @@
 
     /* ===== 사이드바 ===== */
     function formatAddr(a){ return a ? ` · <small>${a}</small>` : ''; }
+    const normalizeUrl = (u) => /^https?:\/\//i.test(u) ? u : ('https://' + u);
 
     async function updatePlaceList(){
       const placeList=document.getElementById('placeList');
@@ -261,6 +260,7 @@
         const canPrevTo   = !isFirst && hasCoord(places[i-1]) && hasCoord(p);
         const canStartTo1 =  isFirst && hasCoord(startCoord) && hasCoord(p);
         const canToEnd    =  isLast  && hasCoord(p) && hasCoord(endCoord);
+        const hasUrl      =  !!(p.url && p.url.trim());
 
         return `
           <div class="place-item" data-place-id="${p.id}">
@@ -272,12 +272,14 @@
               </div>
             </div>
             <div class="direction-row" style="display:flex;gap:8px;flex-wrap:wrap">
+              <!-- 자세한 정보 (해당 장소 url 오픈) -->
+              <button class="btn info" data-kind="${isFirst?'info-start':'info-prev'}" data-idx="${i}" ${hasUrl?'':'disabled'}>자세한 정보</button>
+
+              <!-- 도보 길찾기 -->
               ${isFirst ? `
-                <button class="btn preview" data-kind="preview-start" data-idx="${i}" ${canStartTo1?'':'disabled'}>S → 1 미리보기</button>
-                <button class="btn walk"    data-kind="walk-start"    data-idx="${i}" ${canStartTo1?'':'disabled'}>S → 1 도보 길찾기</button>
+                <button class="btn walk" data-kind="walk-start" data-idx="${i}" ${canStartTo1?'':'disabled'}>S → 1 도보 길찾기</button>
               ` : `
-                <button class="btn preview" data-kind="preview-prev"  data-idx="${i}" ${canPrevTo?'':'disabled'}>← 미리보기</button>
-                <button class="btn walk"    data-kind="walk-prev"     data-idx="${i}" ${canPrevTo?'':'disabled'}>← 도보 길찾기</button>
+                <button class="btn walk" data-kind="walk-prev" data-idx="${i}" ${canPrevTo?'':'disabled'}>← 도보 길찾기</button>
               `}
               ${isLast ? `
                 <button class="btn secondary walk" data-kind="walk-end" data-idx="${i}" ${canToEnd?'':'disabled'}>집가는 길</button>
@@ -287,6 +289,7 @@
         `;
       }).join('');
 
+      // 항목 클릭 시 하이라이트
       placeList.querySelectorAll('.place-item').forEach(item=>{
         item.addEventListener('click',e=>{
           if(e.target.classList.contains('btn')) return;
@@ -294,6 +297,7 @@
         });
       });
 
+      // 버튼 동작
       placeList.querySelectorAll('.btn').forEach(btn=>{
         btn.addEventListener('click', async (e)=>{
           e.stopPropagation();
@@ -301,15 +305,25 @@
           const kind=btn.dataset.kind;
           const arr=(await resolveDayPlaces(currentDay)).places;
 
+          // 정보 버튼 → url 오픈
+          if(kind==='info-start' || kind==='info-prev'){
+            const target = (kind==='info-start') ? arr[0] : arr[idx];
+            if(target?.url){
+              window.open(normalizeUrl(target.url.trim()), '_blank', 'noopener');
+            }else{
+              alert('이 장소에는 등록된 링크가 없어요.');
+            }
+            return;
+          }
+
+          // 길찾기 버튼들
           let from,to;
-          if(kind==='preview-start' || kind==='walk-start'){ from={name:'출발지',...startCoord}; to=arr[0]; }
-          else if(kind==='preview-prev' || kind==='walk-prev'){ from=arr[idx-1]; to=arr[idx]; }
+          if(kind==='walk-start'){ from={name:'출발지',...startCoord}; to=arr[0]; }
+          else if(kind==='walk-prev'){ from=arr[idx-1]; to=arr[idx]; }
           else if(kind==='walk-end'){ from=arr[idx]; to={name:'도착지',...endCoord}; }
 
           if(!hasCoord(from) || !hasCoord(to)) return alert('이 구간은 좌표가 없어 진행할 수 없습니다.');
-
-          if(kind.startsWith('preview')) showPreview(from,to);
-          else openKakaoWalk(from,to); // ← 카카오 공식 ‘도보’ 링크 사용
+          openKakaoWalk(from,to);
         });
       });
     }
@@ -331,26 +345,13 @@
       if(pl?.lat && pl?.lng) map.setCenter(new kakao.maps.LatLng(pl.lat,pl.lng));
     }
 
-    /* ===== 경로: 미리보기(직선) & 카카오 도보 링크 ===== */
-    function showPreview(fromPlace,toPlace){
-      if(polyline) polyline.setMap(null);
-      const p1=new kakao.maps.LatLng(fromPlace.lat,fromPlace.lng);
-      const p2=new kakao.maps.LatLng(toPlace.lat,toPlace.lng);
-      polyline=new kakao.maps.Polyline({
-        path:[p1,p2], strokeWeight:3, strokeColor:'#2196F3', strokeOpacity:.7, strokeStyle:'dash'
-      });
-      polyline.setMap(map);
-      const d=kakao.maps.util.getDistance(p1,p2);
-      alert(`${fromPlace.name} → ${toPlace.name}\n직선거리: ${(d/1000).toFixed(2)}km (미리보기)`);
-    }
-
     // 카카오 공식 링크: /link/by/walk/이름,위도,경도/이름,위도,경도
     function openKakaoWalk(fromPlace,toPlace){
       const enc = (s)=>encodeURIComponent(String(s));
-      const lat = (n)=>Number(n).toFixed(7);   // 소수점 고정(안정성)
+      const lat = (n)=>Number(n).toFixed(7);
       const seg = (p)=>`${enc(p.name||'지점')},${lat(p.lat)},${lat(p.lng)}`;
       const url = `https://map.kakao.com/link/by/walk/${seg(fromPlace)}/${seg(toPlace)}`;
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener');
     }
 
     /* ===== Day 스위치 ===== */
@@ -374,7 +375,7 @@
 
         try{
           startCoord = await geocodeAddress(HOME_ADDR);
-          endCoord   = { ...startCoord }; // 동일 주소
+          endCoord   = { ...startCoord };
         }catch{
           startCoord = {lat:36.8012, lng:127.1065};
           endCoord   = { ...startCoord };
