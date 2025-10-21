@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>여행 일정 플래너</title>
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=cb8fd7f6719645e95bc007ae344e404e"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=cb8fd7f6719645e95bc007ae344e404e&libraries=services&autoload=false"></script>
     <style>
         * {
             margin: 0;
@@ -357,13 +357,15 @@
 
         // 지도 초기화
         function initMap() {
-            const mapContainer = document.getElementById('map');
-            const mapOption = {
-                center: new kakao.maps.LatLng(36.831757, 127.136572),
-                level: 6
-            };
-            map = new kakao.maps.Map(mapContainer, mapOption);
-            updateMap();
+            kakao.maps.load(function() {
+                const mapContainer = document.getElementById('map');
+                const mapOption = {
+                    center: new kakao.maps.LatLng(36.8012, 127.1065),
+                    level: 4
+                };
+                map = new kakao.maps.Map(mapContainer, mapOption);
+                updateMap();
+            });
         }
 
         // 지도 업데이트
