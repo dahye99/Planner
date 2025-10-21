@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>술을 먹자 냠냐미</title>
-    <script defer src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=b4355dd1e5b1ee165fcf0fa8371258c0&libraries=services&autoload=false"></script>
+    <link rel="icon" href="data:,">
     <style>
         * {
             margin: 0;
@@ -355,19 +355,38 @@
         let currentDay = 'day1';
         let selectedPlaceId = null;
 
-        // SDK 로드 대기
-        function bootKakao(callback) {
-          const start = Date.now();
-          const timer = setInterval(() => {
-            if (window.kakao && window.kakao.maps && typeof window.kakao.maps.load === 'function') {
-              clearInterval(timer);
-              callback();
-            } else if (Date.now() - start > 8000) {
-              clearInterval(timer);
-              alert('카카오 지도 SDK 로드 실패: 도메인 등록/JavaScript 키를 확인하세요.');
-              console.error('Kakao SDK not loaded');
-            }
-          }, 50);
+        // SDK 동적 로더: 로드 성공/실패를 명확히 로깅
+        async function bootKakao(callback) {
+          // 이미 로드됐다면 즉시 진행
+          if (window.kakao?.maps?.load) return callback();
+        
+          const JS_KEY = 'b4355dd1e5b1ee165fcf0fa8371258c0'; // Kakao Developers의 "JavaScript 키"
+        
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${JS_KEY}&libraries=services&autoload=false`;
+            s.async = true;
+            s.defer = true;
+            s.onload = () => {
+              console.log('[KakaoSDK] loaded:', s.src);   // 실제 로드된 키/URL 확인
+              resolve();
+            };
+            s.onerror = (e) => {
+              console.error('[KakaoSDK] network error:', e);
+              reject(new Error('Kakao SDK network error'));
+            };
+            document.head.appendChild(s);
+          }).catch((e) => {
+            alert('카카오 지도 SDK 네트워크 오류: 광고차단/방화벽/도메인을 확인하세요.');
+            throw e;
+          });
+        
+          if (typeof window.kakao?.maps?.load === 'function') {
+            window.kakao.maps.load(callback);
+          } else {
+            alert('카카오 지도 SDK 로드 실패: 도메인 등록/JavaScript 키를 확인하세요.');
+            console.error('[KakaoSDK] maps.load missing');
+          }
         }
 
         // 지도 초기화
@@ -525,14 +544,12 @@
         // 초기 실행
         window.addEventListener('DOMContentLoaded', () => {
           bootKakao(() => {
-            // autoload=false 를 썼으므로 로드 콜백에서 지도 초기화
-            kakao.maps.load(() => {
-              initMap();
-              updatePlaceList();
-              updateTodoList();
-            });
+            initMap();
+            updatePlaceList();
+            updateTodoList();
           });
         });
+
 
     </script>
 </body>
