@@ -14,19 +14,34 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f5f5f5}
-    .container{display:flex;height:100vh;flex-direction:column}
+
+    /* 🔧 100vh 이슈 회피: 모바일에서 실제 화면 높이 사용 */
+    .container{
+      display:flex;
+      min-height:100dvh;   /* Chrome/Android 최신 */
+      height:auto;
+      flex-direction:column;
+    }
+    @supports (height: 100svh){
+      .container{ min-height:100svh; }  /* iOS 16+ 등 */
+    }
+
     .day-selector{display:flex;gap:20px;padding:20px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.1);justify-content:center}
     .day-btn{padding:12px 30px;border:2px solid #ddd;border-radius:25px;background:#fff;cursor:pointer;font-size:16px;font-weight:600;transition:.3s}
     .day-btn.active{background:#2196F3;color:#fff;border-color:#2196F3}
     .day-btn:hover{border-color:#2196F3}
+
     .content{display:flex;flex:1;gap:20px;padding:20px;overflow:hidden}
-    .map-container{flex:1;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1);position:relative}
-    #map{width:100%;height:100%}
+    .map-container{flex:1;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1);position:relative; min-height:320px;} /* 🔧 최소 높이 보장 */
+    #map{width:100%;height:100%; min-height:320px;} /* 🔧 최소 높이 보장 */
+
     .map-marker-label{background:#fff;padding:8px 12px;border-radius:20px;border:2px solid #2196F3;font-weight:bold;font-size:14px;color:#2196F3;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:.2s}
     .map-marker-label:hover{background:#2196F3;color:#fff;transform:scale(1.1)}
+
     .sidebar{width:350px;display:flex;flex-direction:column;gap:20px;overflow-y:auto}
     .list-section{background:#fff;border-radius:12px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,.1);flex:1;overflow-y:auto}
     .list-section h2{font-size:18px;margin-bottom:15px;color:#333;border-bottom:2px solid #f0f0f0;padding-bottom:10px}
+
     .place-item{display:flex;flex-direction:column;gap:8px;padding:12px;margin-bottom:10px;background:#f9f9f9;border-radius:8px;cursor:pointer;transition:.3s;border-left:4px solid #e0e0e0}
     .place-item:hover{background:#e3f2fd;border-left-color:#2196F3;transform:translateX(5px)}
     .place-header{display:flex;align-items:center;gap:12px}
@@ -38,25 +53,28 @@
     .place-addr small{color:#666}
     .place-time small{color:#555}
     .place-item.active{background:#fff3e0;border-left-color:#ff9800}
+
     .btn{padding:8px 12px;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
     .btn:hover{transform:scale(1.05)}
     .btn.info{background:#4CAF50}.btn.info:hover{background:#45a049}
     .btn.walk{background:#1976d2}.btn.walk:hover{background:#1565c0}
     .btn.secondary{background:#9c27b0}.btn.secondary:hover{background:#7b1fa2}
     .btn:disabled{background:#ccc;cursor:not-allowed;transform:none}
+
     .todo-item{display:flex;align-items:flex-start;gap:10px;padding:12px;margin-bottom:8px;background:#f9f9f9;border-radius:8px;border-left:4px solid #4CAF50;word-break:break-word}
     .todo-number{font-weight:bold;color:#4CAF50;flex-shrink:0;min-width:20px}
     .todo-text{color:#333;font-size:14px}
+
     .sidebar::-webkit-scrollbar,.list-section::-webkit-scrollbar{width:6px}
     .sidebar::-webkit-scrollbar-track,.list-section::-webkit-scrollbar-track{background:#f1f1f1;border-radius:10px}
     .sidebar::-webkit-scrollbar-thumb,.list-section::-webkit-scrollbar-thumb{background:#888;border-radius:10px}
     .sidebar::-webkit-scrollbar-thumb:hover,.list-section::-webkit-scrollbar-thumb:hover{background:#555}
 
-    /* 모바일: 리스트 박스 각각 2.5배(≈50vh)로 키우기 */
+    /* 📱 모바일: 리스트 2개 각각 2.5배(≈50vh) + 맵은 55dvh */
     @media (max-width:1024px){
       .content{flex-direction:column; overflow:auto;}
       .sidebar{width:100%; height:auto;}
-      .map-container{height:60vh;}
+      .map-container{height:55dvh;}   /* 🔧 vh 대신 dvh */
       .list-section{min-height:50vh;}
     }
   </style>
@@ -84,10 +102,9 @@
   </div>
 
   <script>
-    /* ===== 캐시버스터(모바일 강제 최신화) ===== */
-    const APP_VERSION = '20251021_05';
+    /* ===== 캐시버스터 ===== */
+    const APP_VERSION = '20251021_06';
     (function enforceVersion(){
-      // 파일로 열었으면 강제 리다이렉트 하지 않음 (모바일 파일뷰 예외)
       if (location.protocol === 'file:') return;
       const url = new URL(location.href);
       const v = url.searchParams.get('v');
@@ -97,11 +114,7 @@
       }
     })();
 
-
-    /* ===== 데이터 =====
-       - addr 있으면 지오코딩, 실패하면 이름 검색 보완
-       - url은 "자세한 정보" 버튼에서 새 탭으로 오픈
-       - time은 주소 아래 줄에 표시 */
+    /* ===== 데이터 ===== */
     const data = {
       day1: {
         places: [
@@ -152,20 +165,13 @@
         alert('카카오 지도 SDK 네트워크 오류: 광고차단/방화벽/데이터 차단 확인');
         throw e;
       });
-    
       if (typeof window.kakao?.maps?.load === 'function') {
         window.kakao.maps.load(cb);
       } else {
-        // 🔴 여기서 현재 접속 도메인을 바로 보여줘서 콘솔에 추가할 수 있게 함
-        alert(
-          `카카오 지도 SDK 로드 실패 (도메인 미등록 가능성)\n\n` +
-          `현재 접속 도메인:\n${location.origin}\n\n` +
-          `카카오 개발자 콘솔 > 내 애플리케이션 > 플랫폼 > Web > 사이트 도메인에 위 주소(포함 포트)를 추가하세요.`
-        );
+        alert(`카카오 지도 SDK 로드 실패 (도메인 미등록 가능성)\n현재 접속: ${location.origin}`);
         throw new Error('maps.load missing');
       }
     }
-
 
     /* ===== services helpers ===== */
     let placesService, geocoder;
@@ -234,6 +240,21 @@
     }
 
     /* ===== 지도 & 마커 ===== */
+
+    // 🔧 맵 엘리먼트가 실제 크기를 가질 때까지 대기 (모바일 vh 문제 대응)
+    function waitForMapSize(el){
+      return new Promise(resolve=>{
+        const ready = ()=> el.clientWidth>0 && el.clientHeight>0;
+        if (ready()) return resolve();
+        const ro = new ResizeObserver(()=>{
+          if (ready()){ ro.disconnect(); resolve(); }
+        });
+        ro.observe(el);
+        // 타임아웃 백업
+        setTimeout(()=>{ if (ready()){ ro.disconnect(); resolve(); }}, 1200);
+      });
+    }
+
     function buildLabel(text){
       const el=document.createElement('div');
       el.className='map-marker-label';
@@ -249,21 +270,19 @@
     }
 
     async function initMap(){
+      const mapEl = document.getElementById('map');
+      await waitForMapSize(mapEl);               // ✅ 사이즈 확보 후 초기화
       const center = startCoord || {lat:36.831770, lng:127.136388};
-      map = new kakao.maps.Map(document.getElementById('map'), { center: toLatLng(center), level: 6 });
+      map = new kakao.maps.Map(mapEl, { center: toLatLng(center), level: 6 });
       await updateMap();
 
-      // 지도 컨테이너 크기 변화 대응
+      // 크기 변화 대응
       setTimeout(()=> map && map.relayout(), 0);
       window.addEventListener('resize', ()=> map && map.relayout());
       window.addEventListener('orientationchange', ()=> setTimeout(()=> map && map.relayout(), 300));
-      
-      // 지원되면 ResizeObserver로도 보강
-      const mapEl = document.getElementById('map');
-      if ('ResizeObserver' in window && mapEl) {
+      if ('ResizeObserver' in window) {
         new ResizeObserver(()=> map && map.relayout()).observe(mapEl);
       }
-
     }
 
     async function updateMap(){
@@ -287,13 +306,15 @@
       if(startCoord) bounds.extend(toLatLng(startCoord));
       day.places.forEach(pl=>{ if(pl.lat&&pl.lng) bounds.extend(new kakao.maps.LatLng(pl.lat,pl.lng)); });
       if(endCoord) bounds.extend(toLatLng(endCoord));
-      if(!bounds.isEmpty()) map.setBounds(bounds,40,40,40,40);
+      if(!bounds.isEmpty()){
+        map.setBounds(bounds,40,40,40,40);
+        setTimeout(()=> map && map.relayout(), 0); // 🔧 bounds 후 한 번 더
+      }
     }
 
     /* ===== 사이드바 ===== */
     const normalizeUrl = (u) => /^https?:\/\//i.test(u) ? u : ('https://' + u);
 
-    // 주소/영업시간 라인 출력
     function metaHtml(addr, time){
       let html = '';
       if(addr) html += `<div class="place-addr"><small>${addr}</small></div>`;
@@ -320,9 +341,7 @@
               <div class="place-info">
                 <div class="place-name">${p.name}</div>
                 <div class="place-category">${p.category}${(p.lat==null||p.lng==null)?` · <small style="color:#e53935">좌표 미확정</small>`:''}</div>
-                <div class="place-meta">
-                  ${metaHtml(p.address, p.time)}
-                </div>
+                <div class="place-meta">${metaHtml(p.address, p.time)}</div>
               </div>
             </div>
             <div class="direction-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
@@ -340,7 +359,6 @@
         `;
       }).join('');
 
-      // 항목 클릭 시 하이라이트
       placeList.querySelectorAll('.place-item').forEach(item=>{
         item.addEventListener('click',e=>{
           if(e.target.classList.contains('btn')) return;
@@ -348,7 +366,6 @@
         });
       });
 
-      // 버튼 동작
       placeList.querySelectorAll('.btn').forEach(btn=>{
         btn.addEventListener('click', async (e)=>{
           e.stopPropagation();
@@ -356,7 +373,6 @@
           const kind=btn.dataset.kind;
           const arr=(await resolveDayPlaces(currentDay)).places;
 
-          // 정보 버튼 → url 오픈
           if(kind==='info-start' || kind==='info-prev'){
             const target = (kind==='info-start') ? arr[0] : arr[idx];
             if(target?.url){
@@ -367,7 +383,6 @@
             return;
           }
 
-          // 길찾기 버튼들
           let from,to;
           if(kind==='walk-start'){ from={name:'출발지',...startCoord}; to=arr[0]; }
           else if(kind==='walk-prev'){ from=arr[idx-1]; to=arr[idx]; }
@@ -415,6 +430,9 @@
         await updateMap();
         await updatePlaceList();
         updateTodoList();
+
+        // 🔧 탭 전환 후에도 보강
+        setTimeout(()=> map && map.relayout(), 0);
       });
     });
 
