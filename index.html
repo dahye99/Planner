@@ -87,9 +87,16 @@
     /* ===== 캐시버스터(모바일 강제 최신화) ===== */
     const APP_VERSION = '20251021_05';
     (function enforceVersion(){
-      const v = new URLSearchParams(location.search).get('v');
-      if (v !== APP_VERSION) location.replace(location.origin + location.pathname + '?v=' + APP_VERSION);
+      // 파일로 열었으면 강제 리다이렉트 하지 않음 (모바일 파일뷰 예외)
+      if (location.protocol === 'file:') return;
+      const url = new URL(location.href);
+      const v = url.searchParams.get('v');
+      if (v !== APP_VERSION) {
+        url.searchParams.set('v', APP_VERSION);
+        location.replace(url.toString());
+      }
     })();
+
 
     /* ===== 데이터 =====
        - addr 있으면 지오코딩, 실패하면 이름 검색 보완
@@ -141,10 +148,24 @@
         s.onload=resolve;
         s.onerror=()=>reject(new Error('Kakao SDK network error'));
         document.head.appendChild(s);
-      }).catch(e=>{ alert('카카오 지도 SDK 네트워크 오류: 광고차단/방화벽/도메인을 확인하세요.'); throw e; });
-      if (typeof window.kakao?.maps?.load==='function') window.kakao.maps.load(cb);
-      else { alert('카카오 지도 SDK 로드 실패: 도메인/키 확인'); throw new Error('maps.load missing'); }
+      }).catch(e=>{
+        alert('카카오 지도 SDK 네트워크 오류: 광고차단/방화벽/데이터 차단 확인');
+        throw e;
+      });
+    
+      if (typeof window.kakao?.maps?.load === 'function') {
+        window.kakao.maps.load(cb);
+      } else {
+        // 🔴 여기서 현재 접속 도메인을 바로 보여줘서 콘솔에 추가할 수 있게 함
+        alert(
+          `카카오 지도 SDK 로드 실패 (도메인 미등록 가능성)\n\n` +
+          `현재 접속 도메인:\n${location.origin}\n\n` +
+          `카카오 개발자 콘솔 > 내 애플리케이션 > 플랫폼 > Web > 사이트 도메인에 위 주소(포함 포트)를 추가하세요.`
+        );
+        throw new Error('maps.load missing');
+      }
     }
+
 
     /* ===== services helpers ===== */
     let placesService, geocoder;
@@ -231,6 +252,18 @@
       const center = startCoord || {lat:36.831770, lng:127.136388};
       map = new kakao.maps.Map(document.getElementById('map'), { center: toLatLng(center), level: 6 });
       await updateMap();
+
+      // 지도 컨테이너 크기 변화 대응
+      setTimeout(()=> map && map.relayout(), 0);
+      window.addEventListener('resize', ()=> map && map.relayout());
+      window.addEventListener('orientationchange', ()=> setTimeout(()=> map && map.relayout(), 300));
+      
+      // 지원되면 ResizeObserver로도 보강
+      const mapEl = document.getElementById('map');
+      if ('ResizeObserver' in window && mapEl) {
+        new ResizeObserver(()=> map && map.relayout()).observe(mapEl);
+      }
+
     }
 
     async function updateMap(){
